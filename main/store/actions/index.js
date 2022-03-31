@@ -168,6 +168,9 @@ module.exports = {
   updateLattice: (u, deviceId, update) => {
     if (deviceId && update) u('main.lattice', deviceId, (current = {}) => Object.assign(current, update))
   },
+  syncKeystone: (u, value) => {
+    u('main.keystone.sync', () => value)
+  },
   removeLattice: (u, deviceId) => {
     if (deviceId) {
       u('main.lattice', (lattice = {}) => {
