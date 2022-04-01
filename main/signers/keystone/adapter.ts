@@ -22,7 +22,7 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
 
   open() {
     this.observer = store.observer( () => {
-      const devices: {type: string, cbor: string}[] = store('main.keystone.sync') || []
+      const devices: {type: string, cbor: string}[] = store('main.keystone.devices') || []
       devices.forEach(device => {
         if(device){
           const id = this.getDeviceId(device)
@@ -48,7 +48,7 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
   remove(keystone: Keystone) {
     if (keystone.id in this.knownSigners) {
       log.info(`removing Keystone ${keystone.id}`)
-      const devices: {type: string, cbor: string}[] = store('main.keystone.sync') || []
+      const devices: {type: string, cbor: string}[] = store('main.keystone.devices') || []
       const restDevices = devices.filter(device => {
         const id = this.getDeviceId(device)
         return id !== keystone.id
