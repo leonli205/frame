@@ -1,6 +1,6 @@
 // @ts-ignore
 import { v5 as uuid } from 'uuid'
-import { FrameKeyring } from '@keystonehq/frame-airgapped-keyring'
+import { BaseKeyring } from '@keystonehq/base-eth-keyring'
 import { CryptoAccount, CryptoHDKey } from "@keystonehq/bc-ur-registry-eth";
 
 import Signer from '../../Signer'
@@ -9,7 +9,7 @@ export default class Keystone extends Signer {
 
   addressCount: number = 100
 
-  keystoneKeyring: FrameKeyring = new FrameKeyring();
+  keystoneKeyring: BaseKeyring = new BaseKeyring();
 
   constructor (id: string) {
     super()
@@ -25,7 +25,6 @@ export default class Keystone extends Signer {
       this.addressCount = 10
       this.keystoneKeyring.syncKeyring(CryptoAccount.fromCBOR(Buffer.from(cbor, 'hex')))
     } else {
-      this.addressCount = 100
       this.keystoneKeyring.syncKeyring(CryptoHDKey.fromCBOR(Buffer.from(cbor, 'hex')))
     }
   }
@@ -49,5 +48,15 @@ export default class Keystone extends Signer {
 
     this.status = 'ok'
     this.emit('update')
+  }
+
+  verifyAddress (index: number, current: string, display: boolean, cb: Callback<boolean>) {
+    this.keystoneKeyring.__addressFromIndex('m', index).then(address => {
+      if(address.toUpperCase() === current.toUpperCase()){
+        cb(null, true)
+      } else {
+        cb(new Error('Address does not match device'), undefined)
+      }
+    })
   }
 }
