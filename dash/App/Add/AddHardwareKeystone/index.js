@@ -36,10 +36,8 @@ class AddHardwareKeystone extends React.Component {
   }
 
   render () {
-    let itemClass = 'addAccountItem addAccountItemSmart addAccountItemAdding'
-
     return (
-      <div className={itemClass}>
+      <div className='addAccountItem addAccountItemSmart addAccountItemAdding'>
         <div className='addAccountItemBar' />
         <div className='addAccountItemWrap'>
           <div className='addAccountItemTop'>

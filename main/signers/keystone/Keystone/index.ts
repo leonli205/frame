@@ -17,9 +17,6 @@ export default class Keystone extends Signer {
     this.id = id
   }
 
-  async open () {
-  }
-
   syncKeyring({type, cbor}: {type: string, cbor: string}): void {
     if(type === 'crypto-account'){
       this.addressCount = 10

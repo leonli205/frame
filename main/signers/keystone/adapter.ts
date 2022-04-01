@@ -80,10 +80,6 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
     keystone.on('update', emitUpdate)
     keystone.on('error', emitUpdate)
 
-    keystone.keystoneKeyring.getInteraction().memStore.subscribe(state => {
-      store.setKeystoneMemStore(state.sign.request)
-    })
-
     this.knownSigners[id] = keystone
 
     keystone.deriveAddresses()
