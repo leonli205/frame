@@ -22,14 +22,15 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
 
   open() {
     this.observer = store.observer( () => {
-      const ur = store('main.keystone.sync')
-
-      if(ur){
-        const id = this.getKeyringId(ur)
-        if(!this.knownSigners[id]){
-          this.handleSyncDevice(ur, id)
+      const devices: {type: string, cbor: string}[] = store('main.keystone.sync') || []
+      devices.forEach(device => {
+        if(device){
+          const id = this.getDeviceId(device)
+          if(!this.knownSigners[id]){
+            this.handleSyncDevice(device, id)
+          }
         }
-      }
+      })
     })
 
     super.open()
@@ -47,14 +48,20 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
   remove(keystone: Keystone) {
     if (keystone.id in this.knownSigners) {
       log.info(`removing Keystone ${keystone.id}`)
+      const devices: {type: string, cbor: string}[] = store('main.keystone.sync') || []
+      const restDevices = devices.filter(device => {
+        const id = this.getDeviceId(device)
+        return id !== keystone.id
+      })
 
       delete this.knownSigners[keystone.id]
+      store.updateKeystone(restDevices)
 
       keystone.close()
     }
   }
 
-  private getKeyringId({type, cbor}: {type: string, cbor: string}): string{
+  private getDeviceId({type, cbor}: {type: string, cbor: string}): string{
     if(type === 'crypto-account'){
       const cryptoAccount = CryptoAccount.fromCBOR(Buffer.from(cbor, 'hex'))
       return uuid(`Keystone${cryptoAccount.getRegistryType()?.getType()}-${cryptoAccount.getMasterFingerprint().toString("hex")}`, ns)
