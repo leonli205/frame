@@ -10,7 +10,7 @@ class AddHardwareKeystone extends React.Component {
     super(...args)
     this.state = {
       error: false,
-      readyToScan: false
+      isCameraReady: false
     }
   }
 
@@ -19,13 +19,19 @@ class AddHardwareKeystone extends React.Component {
     this.props.close()
   }
 
-  handleError(error) {
-    this.setState({error})
+  handleError() {
+    const errorTip = "Please check your QR Code"
+    this.setState({error: errorTip})
   }
 
   componentDidMount () {
     link.rpc('askCameraPermission', (access) => {
-      this.setState({readyToScan: access})
+      if(access) {
+        this.setState({readyToScan: true})
+      } else {
+        const errorTip = "Please allow us to access your camera"
+        this.setState({error: errorTip})
+      }
     })
   }
 
@@ -58,14 +64,14 @@ class AddHardwareKeystone extends React.Component {
                           <AnimatedQRScanner
                             purpose={Purpose.SYNC}
                             handleScan={this.handleScan.bind(this)}
-                            handleError={this.handleError}
-                            options={{
-                              width: 300
-                            }}
+                            handleError={this.handleError.bind(this)}
                           />
                         )
                       }
                     </div>
+                    {
+                      this.state.error && <div>{this.state.error}</div>
+                    }
                   </div>
                 </div>
               </div>
