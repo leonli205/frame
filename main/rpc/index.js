@@ -118,6 +118,10 @@ const rpc = {
     store.syncKeystone(ur)
     cb()
   },
+  submitKeystoneSignature(signatureCbor, cb) {
+    store.setKeystoneSignature(signatureCbor)
+    cb()
+  },
   async latticePair (id, pin, cb) {
     const signer = signers.get(id)
 

@@ -174,6 +174,16 @@ module.exports = {
   updateKeystone: (u, value) => {
     u('main.keystone.devices', () => value)
   },
+  setKeystoneSignRequest: (u, value) => {
+    u('main.keystone.signRequest', () => value)
+  },
+  setKeystoneSignature: (u, value) => {
+    u('main.keystone.signature', () => value)
+  },
+  resetKeystoneSignRequest: (u) => {
+    u('main.keystone.signRequest', () => null)
+    u('main.keystone.signature', () => null)
+  },
   removeLattice: (u, deviceId) => {
     if (deviceId) {
       u('main.lattice', (lattice = {}) => {
