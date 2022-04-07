@@ -1,18 +1,19 @@
 import log from 'electron-log'
 
 // @ts-ignore
-import { v5 as uuid } from 'uuid'
+import { v5 as uuid, stringify } from 'uuid'
 
 import { SignerAdapter } from '../adapters'
 import Keystone from './Keystone'
 import store from '../../store'
-import { CryptoAccount, CryptoHDKey } from "@keystonehq/bc-ur-registry-eth";
+import { CryptoAccount, CryptoHDKey, ETHSignature } from "@keystonehq/bc-ur-registry-eth";
 
 const ns = '3bbcee75-cecc-5b56-8031-b6641c1ed1f1'
 
 export default class KeystoneSignerAdapter extends SignerAdapter {
   private knownSigners: { [id: string]: Keystone }
   private observer: any;
+  private signerObserver: any;
 
   constructor() {
     super('keystone')
@@ -31,6 +32,24 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
           }
         }
       })
+    })
+
+    this.signerObserver = store.observer(() => {
+      const signRequest = store('main.keystone.signRequest')
+      const signature = store('main.keystone.signature')
+
+      if(signature){
+        const { signerId, request } = signRequest
+        const ethSignature = ETHSignature.fromCBOR(Buffer.from(signature.cbor, "hex"))
+        const buffer = ethSignature.getRequestId();
+        const signId = stringify(buffer);
+
+        if(signId === request.requestId) {
+          const currentSigner = this.knownSigners[signerId]
+          currentSigner.keystoneKeyring.submitSignature(request.requestId, signature.cbor)
+          store.resetKeystoneSignRequest()
+        }
+      }
     })
 
     super.open()
@@ -79,6 +98,13 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
 
     keystone.on('update', emitUpdate)
     keystone.on('error', emitUpdate)
+
+    keystone.keystoneKeyring.getInteraction().memStore.subscribe((state: any) => {
+      store.setKeystoneSignRequest({
+        signerId: keystone.id,
+        request: state.sign.request
+      })
+    })
 
     this.knownSigners[id] = keystone
 
