@@ -491,13 +491,16 @@ class TransactionRequest extends React.Component {
                   {/* <TxModule top={165} req={req} /> */}
                 </>
               )}
-              {notice &&
-                <QRSignModal
+              {
+                status === 'pending' && <QRSignModal
                   signRequest={signRequest}
-                  submitSignature={(signatureCbor) => {
-                    link.rpc('submitKeystoneSignature', signatureCbor, () => {})}
-                  }
-                  cancelSignature={() => this.decline(req)}
+                  submitSignature={(signature) => {
+                    link.rpc('submitKeystoneSignature', signature, () => {})
+                  }}
+                  cancelRequestSignature={() => {
+                    link.rpc('cancelKeystoneRequestSignature', () => {})
+                    this.decline(req)
+                  }}
                 />
               }
             </div>

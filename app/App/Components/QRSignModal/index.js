@@ -1,17 +1,41 @@
 import React, { useState } from 'react'
 import { AnimatedQRCode, AnimatedQRScanner, Purpose } from '@keystonehq/animated-qr'
+import ErrorModal from './ErrorModal'
+import { ETHSignature } from '@keystonehq/bc-ur-registry-eth'
+import { stringify } from 'uuid'
 
-const QRSignModal = ({ signRequest, submitSignature, cancelSignature }) => {
-  const [showModal, setShowModal] = useState(true)
+const QRSignModal = ({ signRequest, submitSignature, cancelRequestSignature }) => {
   const [showScanner, setShowScanner] = useState(false)
+  const [error, setError] = useState('')
 
   const ethSignRequest = signRequest && signRequest.request
   const ethSignRequestCbor = ethSignRequest ? ethSignRequest.payload.cbor : null
 
-  const shouldShowQRModal = ethSignRequestCbor && showModal
+  const handleSubmitSignature = (signature) => {
+    const { request } = signRequest
+    const ethSignature = ETHSignature.fromCBOR(Buffer.from(signature.cbor, 'hex'))
+    const buffer = ethSignature.getRequestId()
+    const signId = stringify(buffer)
 
-  return shouldShowQRModal && (
-    <div className="requestQRInteractionModal">
+    if (signId === request.requestId) {
+      submitSignature(signature)
+    } else {
+      setError('SignIdMismatch')
+    }
+    setShowScanner(false)
+  }
+
+  return error ? (
+    <ErrorModal
+      error={error}
+      handleRetry={() => {
+        setError('')
+        setShowScanner(true)
+      }}
+      handleCancel={cancelRequestSignature}
+    />
+  ) : (
+    <div className="requestQRModal">
       <div className="requestQR">
         {
           ethSignRequestCbor && !showScanner &&
@@ -21,30 +45,26 @@ const QRSignModal = ({ signRequest, submitSignature, cancelSignature }) => {
           showScanner && (
             <AnimatedQRScanner
               purpose={Purpose.SIGN}
-              handleScan={(signatureCbor) => {
-                setShowModal(false)
-                submitSignature(signatureCbor)
+              handleScan={handleSubmitSignature}
+              handleError={() => {
+                setError('InvalidQRCode')
               }}
-              handleError={cancelSignature}
             />
           )
         }
       </div>
-      <div className="qrInteractionButton">
+      <div className="modalButton">
         <div
-          className="getSignature"
-          onMouseDown={() => { 
+          className={`confirm ${showScanner ? 'disabled' : ''}`}
+          onMouseDown={() => {
             setShowScanner(true)
           }}
         >
           Get Signature
         </div>
         <div
-          className="cancelSignature"
-          onMouseDown={() => {
-            setShowModal(false)
-            cancelSignature()
-          }}
+          className="cancel"
+          onMouseDown={cancelRequestSignature}
         >
           Cancel
         </div>

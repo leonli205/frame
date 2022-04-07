@@ -122,6 +122,10 @@ const rpc = {
     store.setKeystoneSignature(signatureCbor)
     cb()
   },
+  cancelKeystoneRequestSignature(cb) {
+    store.resetKeystoneSignRequest()
+    cb()
+  },
   async latticePair (id, pin, cb) {
     const signer = signers.get(id)
 

@@ -6,7 +6,7 @@ import { v5 as uuid, stringify } from 'uuid'
 import { SignerAdapter } from '../adapters'
 import Keystone from './Keystone'
 import store from '../../store'
-import { CryptoAccount, CryptoHDKey, ETHSignature } from "@keystonehq/bc-ur-registry-eth";
+import { CryptoAccount, CryptoHDKey } from "@keystonehq/bc-ur-registry-eth";
 
 const ns = '3bbcee75-cecc-5b56-8031-b6641c1ed1f1'
 
@@ -39,16 +39,10 @@ export default class KeystoneSignerAdapter extends SignerAdapter {
       const signature = store('main.keystone.signature')
 
       if(signature){
-        const { signerId, request } = signRequest
-        const ethSignature = ETHSignature.fromCBOR(Buffer.from(signature.cbor, "hex"))
-        const buffer = ethSignature.getRequestId();
-        const signId = stringify(buffer);
-
-        if(signId === request.requestId) {
-          const currentSigner = this.knownSigners[signerId]
-          currentSigner.keystoneKeyring.submitSignature(request.requestId, signature.cbor)
-          store.resetKeystoneSignRequest()
-        }
+        const {signerId, request} = signRequest
+        const currentSigner = this.knownSigners[signerId]
+        currentSigner.keystoneKeyring.submitSignature(request.requestId, signature.cbor)
+        store.resetKeystoneSignRequest()
       }
     })
 
